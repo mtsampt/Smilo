@@ -61,23 +61,20 @@ class ViewController: UIViewController {
             return
         }
         
-        arView.session.raycast(raycastQuery) { [weak self] results, error in
-            guard let self = self,
-                  let result = results.first else {
-                return
-            }
-            
-            // Create a simple sphere entity at the tapped location
-            let sphere = ModelEntity(mesh: .generateSphere(radius: 0.05))
-            sphere.components.set(ModelDebugOptionsComponent(visualizationMode: .none))
-            
-            // Create anchor at the hit location
-            let anchor = AnchorEntity(raycastResult: result)
-            anchor.addChild(sphere)
-            
-            // Add the anchor to the scene
-            self.arView.scene.addAnchor(anchor)
+        let results = arView.session.raycast(raycastQuery)
+        guard let result = results.first else {
+            return
         }
+        
+        // Create a simple sphere entity at the tapped location
+        let sphere = ModelEntity(mesh: .generateSphere(radius: 0.05))
+        
+        // Create anchor at the hit location
+        let anchor = AnchorEntity(world: result.worldTransform)
+        anchor.addChild(sphere)
+        
+        // Add the anchor to the scene
+        arView.scene.addAnchor(anchor)
     }
 }
 

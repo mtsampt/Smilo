@@ -7,27 +7,27 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		1A2B3C4D5E6F7890 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A2B3C4D5E6F7891 /* AppDelegate.swift */; };
-		1A2B3C4D5E6F7892 /* SceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A2B3C4D5E6F7893 /* SceneDelegate.swift */; };
-		1A2B3C4D5E6F7894 /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A2B3C4D5E6F7895 /* ViewController.swift */; };
-		1A2B3C4D5E6F7896 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 1A2B3C4D5E6F7897 /* Main.storyboard */; };
-		1A2B3C4D5E6F7898 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 1A2B3C4D5E6F7899 /* Assets.xcassets */; };
-		1A2B3C4D5E6F789A /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 1A2B3C4D5E6F789B /* LaunchScreen.storyboard */; };
+		A1234567890123456789012 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1234567890123456789013 /* AppDelegate.swift */; };
+		A1234567890123456789014 /* SceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1234567890123456789015 /* SceneDelegate.swift */; };
+		A1234567890123456789016 /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1234567890123456789017 /* ViewController.swift */; };
+		A1234567890123456789018 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = A1234567890123456789019 /* Main.storyboard */; };
+		A1234567890123456789020 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = A1234567890123456789021 /* Assets.xcassets */; };
+		A1234567890123456789022 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = A1234567890123456789023 /* LaunchScreen.storyboard */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
-		1A2B3C4D5E6F7890 /* ARApp.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = ARApp.app; sourceTree = BUILT_PRODUCTS_DIR; };
-		1A2B3C4D5E6F7891 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
-		1A2B3C4D5E6F7893 /* SceneDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SceneDelegate.swift; sourceTree = "<group>"; };
-		1A2B3C4D5E6F7895 /* ViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewController.swift; sourceTree = "<group>"; };
-		1A2B3C4D5E6F7897 /* Main.storyboard */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; path = Main.storyboard; sourceTree = "<group>"; };
-		1A2B3C4D5E6F7899 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
-		1A2B3C4D5E6F789B /* LaunchScreen.storyboard */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; path = LaunchScreen.storyboard; sourceTree = "<group>"; };
-		1A2B3C4D5E6F789C /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		A1234567890123456789013 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
+		A1234567890123456789015 /* SceneDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SceneDelegate.swift; sourceTree = "<group>"; };
+		A1234567890123456789017 /* ViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewController.swift; sourceTree = "<group>"; };
+		A1234567890123456789019 /* Main.storyboard */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; path = Main.storyboard; sourceTree = "<group>"; };
+		A1234567890123456789021 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		A1234567890123456789023 /* LaunchScreen.storyboard */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; path = LaunchScreen.storyboard; sourceTree = "<group>"; };
+		A1234567890123456789024 /* ARApp.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = ARApp.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		A1234567890123456789025 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
-		1A2B3C4D5E6F788D /* Frameworks */ = {
+		A1234567890123456789026 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -37,46 +37,46 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
-		1A2B3C4D5E6F7887 = {
+		A1234567890123456789027 = {
 			isa = PBXGroup;
 			children = (
-				1A2B3C4D5E6F7892 /* ARApp */,
-				1A2B3C4D5E6F7891 /* Products */,
+				A1234567890123456789028 /* ARApp */,
+				A1234567890123456789029 /* Products */,
 			);
 			sourceTree = "<group>";
 		};
-		1A2B3C4D5E6F7891 /* Products */ = {
+		A1234567890123456789028 /* ARApp */ = {
 			isa = PBXGroup;
 			children = (
-				1A2B3C4D5E6F7890 /* ARApp.app */,
-			);
-			name = Products;
-			sourceTree = "<group>";
-		};
-		1A2B3C4D5E6F7892 /* ARApp */ = {
-			isa = PBXGroup;
-			children = (
-				1A2B3C4D5E6F7891 /* AppDelegate.swift */,
-				1A2B3C4D5E6F7893 /* SceneDelegate.swift */,
-				1A2B3C4D5E6F7895 /* ViewController.swift */,
-				1A2B3C4D5E6F7897 /* Main.storyboard */,
-				1A2B3C4D5E6F7899 /* Assets.xcassets */,
-				1A2B3C4D5E6F789B /* LaunchScreen.storyboard */,
-				1A2B3C4D5E6F789C /* Info.plist */,
+				A1234567890123456789013 /* AppDelegate.swift */,
+				A1234567890123456789015 /* SceneDelegate.swift */,
+				A1234567890123456789017 /* ViewController.swift */,
+				A1234567890123456789019 /* Main.storyboard */,
+				A1234567890123456789021 /* Assets.xcassets */,
+				A1234567890123456789023 /* LaunchScreen.storyboard */,
+				A1234567890123456789025 /* Info.plist */,
 			);
 			path = ARApp;
+			sourceTree = "<group>";
+		};
+		A1234567890123456789029 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				A1234567890123456789024 /* ARApp.app */,
+			);
+			name = Products;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
-		1A2B3C4D5E6F788F /* ARApp */ = {
+		A1234567890123456789030 /* ARApp */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 1A2B3C4D5E6F789D /* Build configuration list for PBXNativeTarget "ARApp" */;
+			buildConfigurationList = A1234567890123456789031 /* Build configuration list for PBXNativeTarget "ARApp" */;
 			buildPhases = (
-				1A2B3C4D5E6F788C /* Sources */,
-				1A2B3C4D5E6F788D /* Frameworks */,
-				1A2B3C4D5E6F788E /* Resources */,
+				A1234567890123456789032 /* Sources */,
+				A1234567890123456789026 /* Frameworks */,
+				A1234567890123456789033 /* Resources */,
 			);
 			buildRules = (
 			);
@@ -84,25 +84,25 @@
 			);
 			name = ARApp;
 			productName = ARApp;
-			productReference = 1A2B3C4D5E6F7890 /* ARApp.app */;
+			productReference = A1234567890123456789024 /* ARApp.app */;
 			productType = "com.apple.product-type.application";
 		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
-		1A2B3C4D5E6F7888 /* Project object */ = {
+		A1234567890123456789034 /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
 				BuildIndependentTargetsInParallel = 1;
 				LastSwiftUpdateCheck = 1500;
 				LastUpgradeCheck = 1500;
 				TargetAttributes = {
-					1A2B3C4D5E6F788F = {
+					A1234567890123456789030 = {
 						CreatedOnToolsVersion = 15.0;
 					};
 				};
 			};
-			buildConfigurationList = 1A2B3C4D5E6F788B /* Build configuration list for PBXProject "ARApp" */;
+			buildConfigurationList = A1234567890123456789035 /* Build configuration list for PBXProject "ARApp" */;
 			compatibilityVersion = "Xcode 14.0";
 			developmentRegion = en;
 			hasScannedForEncodings = 0;
@@ -110,44 +110,44 @@
 				en,
 				Base,
 			);
-			mainGroup = 1A2B3C4D5E6F7887;
-			productRefGroup = 1A2B3C4D5E6F7891 /* Products */;
+			mainGroup = A1234567890123456789027;
+			productRefGroup = A1234567890123456789029 /* Products */;
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
-				1A2B3C4D5E6F788F /* ARApp */,
+				A1234567890123456789030 /* ARApp */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
-		1A2B3C4D5E6F788E /* Resources */ = {
+		A1234567890123456789033 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				1A2B3C4D5E6F789A /* LaunchScreen.storyboard in Resources */,
-				1A2B3C4D5E6F7898 /* Assets.xcassets in Resources */,
-				1A2B3C4D5E6F7896 /* Main.storyboard in Resources */,
+				A1234567890123456789022 /* LaunchScreen.storyboard in Resources */,
+				A1234567890123456789020 /* Assets.xcassets in Resources */,
+				A1234567890123456789018 /* Main.storyboard in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
-		1A2B3C4D5E6F788C /* Sources */ = {
+		A1234567890123456789032 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				1A2B3C4D5E6F7894 /* ViewController.swift in Sources */,
-				1A2B3C4D5E6F7890 /* AppDelegate.swift in Sources */,
-				1A2B3C4D5E6F7892 /* SceneDelegate.swift in Sources */,
+				A1234567890123456789016 /* ViewController.swift in Sources */,
+				A1234567890123456789012 /* AppDelegate.swift in Sources */,
+				A1234567890123456789014 /* SceneDelegate.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXSourcesBuildPhase section */
 
 /* Begin XCBuildConfiguration section */
-		1A2B3C4D5E6F789E /* Debug */ = {
+		A1234567890123456789036 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
@@ -210,7 +210,7 @@
 			};
 			name = Debug;
 		};
-		1A2B3C4D5E6F789F /* Release */ = {
+		A1234567890123456789037 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
@@ -266,20 +266,22 @@
 			};
 			name = Release;
 		};
-		1A2B3C4D5E6F78A0 /* Debug */ = {
+		A1234567890123456789038 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = "";
+				DEVELOPMENT_TEAM = TQ5NZ36NN4;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = ARApp/Info.plist;
 				INFOPLIST_KEY_NSCameraUsageDescription = "This app needs camera access for AR functionality";
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchStoryboardName = LaunchScreen;
 				INFOPLIST_KEY_UIMainStoryboardFile = Main;
+				INFOPLIST_KEY_UIRequiredDeviceCapabilities = arkit;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -287,7 +289,7 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.example.ARApp;
+				PRODUCT_BUNDLE_IDENTIFIER = com.example.SmiloApp;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
@@ -295,20 +297,22 @@
 			};
 			name = Debug;
 		};
-		1A2B3C4D5E6F78A1 /* Release */ = {
+		A1234567890123456789039 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = "";
+				DEVELOPMENT_TEAM = TQ5NZ36NN4;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = ARApp/Info.plist;
 				INFOPLIST_KEY_NSCameraUsageDescription = "This app needs camera access for AR functionality";
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchStoryboardName = LaunchScreen;
 				INFOPLIST_KEY_UIMainStoryboardFile = Main;
+				INFOPLIST_KEY_UIRequiredDeviceCapabilities = arkit;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -316,7 +320,7 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.example.ARApp;
+				PRODUCT_BUNDLE_IDENTIFIER = com.example.SmiloApp;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
@@ -327,25 +331,25 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		1A2B3C4D5E6F788B /* Build configuration list for PBXProject "ARApp" */ = {
+		A1234567890123456789031 /* Build configuration list for PBXNativeTarget "ARApp" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
-				1A2B3C4D5E6F789E /* Debug */,
-				1A2B3C4D5E6F789F /* Release */,
+				A1234567890123456789038 /* Debug */,
+				A1234567890123456789039 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		1A2B3C4D5E6F789D /* Build configuration list for PBXNativeTarget "ARApp" */ = {
+		A1234567890123456789035 /* Build configuration list for PBXProject "ARApp" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
-				1A2B3C4D5E6F78A0 /* Debug */,
-				1A2B3C4D5E6F78A1 /* Release */,
+				A1234567890123456789036 /* Debug */,
+				A1234567890123456789037 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
 	};
-	rootObject = 1A2B3C4D5E6F7888 /* Project object */;
-} 
+	rootObject = A1234567890123456789034 /* Project object */;
+}
