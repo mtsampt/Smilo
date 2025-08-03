@@ -1,14 +1,20 @@
 import UIKit
 import ARKit
 import RealityKit
+import AVFoundation
 
 class ViewController: UIViewController {
     
     @IBOutlet var arView: ARView!
     
+    // Camera components
+    private var captureButton: UIButton?
+    private var capturedImage: UIImage?
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         setupAR()
+        setupCamera()
     }
     
     override func viewWillAppear(_ animated: Bool) {
@@ -51,6 +57,148 @@ class ViewController: UIViewController {
         configuration.environmentTexturing = .automatic
         
         arView.session.run(configuration, options: [.resetTracking, .removeExistingAnchors])
+    }
+    
+    // MARK: - Camera Setup
+    private func setupCamera() {
+        // Request camera permission
+        AVCaptureDevice.requestAccess(for: .video) { [weak self] granted in
+            DispatchQueue.main.async {
+                if granted {
+                    self?.createCaptureButton()
+                } else {
+                    self?.showCameraPermissionAlert()
+                }
+            }
+        }
+    }
+    
+    private func createCaptureButton() {
+        captureButton = UIButton(type: .custom)
+        captureButton?.backgroundColor = .white
+        captureButton?.layer.cornerRadius = 40
+        captureButton?.layer.borderWidth = 4
+        captureButton?.layer.borderColor = UIColor.black.cgColor
+        captureButton?.addTarget(self, action: #selector(captureButtonTapped), for: .touchUpInside)
+        
+        if let captureButton = captureButton {
+            view.addSubview(captureButton)
+            captureButton.translatesAutoresizingMaskIntoConstraints = false
+            NSLayoutConstraint.activate([
+                captureButton.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+                captureButton.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -50),
+                captureButton.widthAnchor.constraint(equalToConstant: 80),
+                captureButton.heightAnchor.constraint(equalToConstant: 80)
+            ])
+        }
+    }
+    
+    @objc private func captureButtonTapped() {
+        // Use ARKit's built-in photo capture
+        arView.snapshot(saveToHDR: false) { [weak self] image in
+            DispatchQueue.main.async {
+                if let image = image {
+                    self?.capturedImage = image
+                    self?.showCapturedImage(image)
+                } else {
+                    // Show error alert
+                    let alert = UIAlertController(
+                        title: "Photo Capture Failed",
+                        message: "Unable to capture photo. Please try again.",
+                        preferredStyle: .alert
+                    )
+                    alert.addAction(UIAlertAction(title: "OK", style: .default))
+                    self?.present(alert, animated: true)
+                }
+            }
+        }
+    }
+    
+    private func showCameraPermissionAlert() {
+        let alert = UIAlertController(
+            title: "Camera Permission Required",
+            message: "This app needs camera access to capture photos. Please enable camera access in Settings.",
+            preferredStyle: .alert
+        )
+        
+        alert.addAction(UIAlertAction(title: "Open Settings", style: .default) { _ in
+            if let settingsUrl = URL(string: UIApplication.openSettingsURLString) {
+                UIApplication.shared.open(settingsUrl)
+            }
+        })
+        
+        alert.addAction(UIAlertAction(title: "Cancel", style: .cancel))
+        
+        present(alert, animated: true)
+    }
+    
+    private func showCapturedImage(_ image: UIImage) {
+        let imageViewController = UIViewController()
+        imageViewController.view.backgroundColor = .black
+        
+        let imageView = UIImageView(image: image)
+        imageView.contentMode = .scaleAspectFit
+        imageView.translatesAutoresizingMaskIntoConstraints = false
+        
+        imageViewController.view.addSubview(imageView)
+        NSLayoutConstraint.activate([
+            imageView.topAnchor.constraint(equalTo: imageViewController.view.safeAreaLayoutGuide.topAnchor),
+            imageView.leadingAnchor.constraint(equalTo: imageViewController.view.leadingAnchor),
+            imageView.trailingAnchor.constraint(equalTo: imageViewController.view.trailingAnchor),
+            imageView.bottomAnchor.constraint(equalTo: imageViewController.view.safeAreaLayoutGuide.bottomAnchor)
+        ])
+        
+        // Add save button
+        let saveButton = UIBarButtonItem(title: "Save", style: .plain, target: self, action: #selector(saveImage))
+        imageViewController.navigationItem.rightBarButtonItem = saveButton
+        
+        let navigationController = UINavigationController(rootViewController: imageViewController)
+        navigationController.navigationBar.tintColor = .white
+        navigationController.navigationBar.barStyle = .black
+        
+        present(navigationController, animated: true)
+    }
+    
+    @objc private func saveImage() {
+        // Save the image to photo library
+        if let image = capturedImage {
+            UIImageWriteToSavedPhotosAlbum(image, self, #selector(image(_:didFinishSavingWithError:contextInfo:)), nil)
+        } else {
+            // Show error alert if no image
+            let alert = UIAlertController(
+                title: "Save Failed",
+                message: "No image to save.",
+                preferredStyle: .alert
+            )
+            alert.addAction(UIAlertAction(title: "OK", style: .default))
+            present(alert, animated: true)
+        }
+    }
+    
+    @objc private func image(_ image: UIImage, didFinishSavingWithError error: Error?, contextInfo: UnsafeRawPointer) {
+        DispatchQueue.main.async {
+            if let error = error {
+                // Show error alert
+                let alert = UIAlertController(
+                    title: "Save Failed",
+                    message: "Failed to save photo: \(error.localizedDescription)",
+                    preferredStyle: .alert
+                )
+                alert.addAction(UIAlertAction(title: "OK", style: .default))
+                self.present(alert, animated: true)
+            } else {
+                // Show success alert
+                let alert = UIAlertController(
+                    title: "Photo Saved",
+                    message: "Photo has been saved to your camera roll!",
+                    preferredStyle: .alert
+                )
+                alert.addAction(UIAlertAction(title: "OK", style: .default) { _ in
+                    self.dismiss(animated: true)
+                })
+                self.present(alert, animated: true)
+            }
+        }
     }
     
     @objc private func handleTap(_ gesture: UITapGestureRecognizer) {
