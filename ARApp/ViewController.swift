@@ -10,11 +10,13 @@ class ViewController: UIViewController {
     // Camera components
     private var captureButton: UIButton?
     private var capturedImage: UIImage?
+    private var scanCounter: Int = 0
     
     override func viewDidLoad() {
         super.viewDidLoad()
         setupAR()
         setupCamera()
+        createScanSessionFolder()
     }
     
     override func viewWillAppear(_ animated: Bool) {
@@ -99,7 +101,31 @@ class ViewController: UIViewController {
             DispatchQueue.main.async {
                 if let image = image {
                     self?.capturedImage = image
-                    self?.showCapturedImage(image)
+                    
+                    // Save to ScanSession folder
+                    let savedToScanSession = self?.saveImageToScanSession(image) ?? false
+                    
+                    // Show success or error alert
+                    if savedToScanSession {
+                        let alert = UIAlertController(
+                            title: "Photo Captured",
+                            message: "Photo saved to ScanSession folder as scan_\(String(format: "%02d", self?.scanCounter ?? 0)).jpg",
+                            preferredStyle: .alert
+                        )
+                        alert.addAction(UIAlertAction(title: "View Photo", style: .default) { _ in
+                            self?.showCapturedImage(image)
+                        })
+                        alert.addAction(UIAlertAction(title: "OK", style: .cancel))
+                        self?.present(alert, animated: true)
+                    } else {
+                        let alert = UIAlertController(
+                            title: "Save Failed",
+                            message: "Failed to save photo to ScanSession folder.",
+                            preferredStyle: .alert
+                        )
+                        alert.addAction(UIAlertAction(title: "OK", style: .default))
+                        self?.present(alert, animated: true)
+                    }
                 } else {
                     // Show error alert
                     let alert = UIAlertController(
@@ -223,6 +249,74 @@ class ViewController: UIViewController {
         
         // Add the anchor to the scene
         arView.scene.addAnchor(anchor)
+    }
+    
+    // MARK: - File Management
+    private func createScanSessionFolder() {
+        // Get the Documents directory path
+        guard let documentsPath = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first else {
+            print("Error: Could not access Documents directory")
+            return
+        }
+        
+        // Create the ScanSession folder path
+        let scanSessionPath = documentsPath.appendingPathComponent("ScanSession")
+        
+        // Check if the folder already exists
+        if !FileManager.default.fileExists(atPath: scanSessionPath.path) {
+            do {
+                // Create the folder
+                try FileManager.default.createDirectory(at: scanSessionPath, withIntermediateDirectories: true, attributes: nil)
+                print("Successfully created ScanSession folder at: \(scanSessionPath.path)")
+            } catch {
+                print("Error creating ScanSession folder: \(error.localizedDescription)")
+            }
+        } else {
+            print("ScanSession folder already exists at: \(scanSessionPath.path)")
+        }
+    }
+    
+    private func saveImageToScanSession(_ image: UIImage) -> Bool {
+        // Get the Documents directory path
+        guard let documentsPath = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first else {
+            print("Error: Could not access Documents directory")
+            return false
+        }
+        
+        // Create the ScanSession folder path
+        let scanSessionPath = documentsPath.appendingPathComponent("ScanSession")
+        
+        // Ensure the folder exists
+        if !FileManager.default.fileExists(atPath: scanSessionPath.path) {
+            do {
+                try FileManager.default.createDirectory(at: scanSessionPath, withIntermediateDirectories: true, attributes: nil)
+            } catch {
+                print("Error creating ScanSession folder: \(error.localizedDescription)")
+                return false
+            }
+        }
+        
+        // Increment counter and create filename
+        scanCounter += 1
+        let filename = String(format: "scan_%02d.jpg", scanCounter)
+        let fileURL = scanSessionPath.appendingPathComponent(filename)
+        
+        // Convert image to JPEG data
+        guard let imageData = image.jpegData(compressionQuality: 0.8) else {
+            print("Error: Could not convert image to JPEG data")
+            return false
+        }
+        
+        // Save the file
+        do {
+            try imageData.write(to: fileURL)
+            print("Successfully saved \(filename) to ScanSession folder")
+            print("📁 Full file path: \(fileURL.path)")
+            return true
+        } catch {
+            print("Error saving image to ScanSession folder: \(error.localizedDescription)")
+            return false
+        }
     }
 }
 
