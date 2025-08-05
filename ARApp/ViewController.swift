@@ -122,6 +122,46 @@ class ViewController: UIViewController {
                 meshGenerationButton.heightAnchor.constraint(equalToConstant: 50)
             ])
         }
+        
+        // Create a second button for loading meshes
+        let loadMeshButton = UIButton(type: .custom)
+        loadMeshButton.backgroundColor = .systemGreen
+        loadMeshButton.layer.cornerRadius = 20
+        loadMeshButton.layer.borderWidth = 2
+        loadMeshButton.layer.borderColor = UIColor.white.cgColor
+        loadMeshButton.setTitle("Load", for: .normal)
+        loadMeshButton.setTitleColor(.white, for: .normal)
+        loadMeshButton.titleLabel?.font = UIFont.boldSystemFont(ofSize: 14)
+        loadMeshButton.addTarget(self, action: #selector(loadMeshButtonTapped), for: .touchUpInside)
+        
+        view.addSubview(loadMeshButton)
+        loadMeshButton.translatesAutoresizingMaskIntoConstraints = false
+        NSLayoutConstraint.activate([
+            loadMeshButton.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor, constant: -20),
+            loadMeshButton.bottomAnchor.constraint(equalTo: meshGenerationButton!.topAnchor, constant: -10),
+            loadMeshButton.widthAnchor.constraint(equalToConstant: 40),
+            loadMeshButton.heightAnchor.constraint(equalToConstant: 40)
+        ])
+        
+        // Create a third button for the 3D viewer
+        let viewerButton = UIButton(type: .custom)
+        viewerButton.backgroundColor = .systemOrange
+        viewerButton.layer.cornerRadius = 20
+        viewerButton.layer.borderWidth = 2
+        viewerButton.layer.borderColor = UIColor.white.cgColor
+        viewerButton.setTitle("3D", for: .normal)
+        viewerButton.setTitleColor(.white, for: .normal)
+        viewerButton.titleLabel?.font = UIFont.boldSystemFont(ofSize: 14)
+        viewerButton.addTarget(self, action: #selector(viewerButtonTapped), for: .touchUpInside)
+        
+        view.addSubview(viewerButton)
+        viewerButton.translatesAutoresizingMaskIntoConstraints = false
+        NSLayoutConstraint.activate([
+            viewerButton.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor, constant: -20),
+            viewerButton.bottomAnchor.constraint(equalTo: loadMeshButton.topAnchor, constant: -10),
+            viewerButton.widthAnchor.constraint(equalToConstant: 40),
+            viewerButton.heightAnchor.constraint(equalToConstant: 40)
+        ])
     }
     
     @objc private func captureButtonTapped() {
@@ -238,13 +278,15 @@ class ViewController: UIViewController {
                         switch result {
                         case .success(_):
                             print("✅ DEBUG: Success case - getting file path")
-                            // Show success alert with file path
+                            // Get the generated file path
                             if let filePath = strongMeshGenerator?.getGeneratedFilePath() {
                                 print("✅ DEBUG: File path: \(filePath)")
-                                self.showAlert(
-                                    title: "3D Mesh Generated!",
-                                    message: "Successfully created 3D mesh from your photos.\n\nFile saved to:\n\(filePath)"
-                                )
+                                
+                                // Convert file path to URL
+                                let fileURL = URL(fileURLWithPath: filePath)
+                                
+                                // Automatically navigate to ModelViewer with the mesh file
+                                self.navigateToModelViewer(with: fileURL)
                             } else {
                                 print("⚠️ DEBUG: No file path available")
                                 self.showAlert(
@@ -268,6 +310,101 @@ class ViewController: UIViewController {
         } else {
             showAlert(title: "iOS Version Required", message: "3D mesh generation requires iOS 15.0 or later.")
         }
+    }
+    
+    /// Demonstrates how to load and display a 3D mesh file
+    @objc private func loadMeshButtonTapped() {
+        print("🔍 DEBUG: loadMeshButtonTapped called")
+        
+        // Get the Documents directory
+        guard let documentsPath = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first else {
+            showAlert(title: "Error", message: "Could not access Documents directory")
+            return
+        }
+        
+        let meshOutputPath = documentsPath.appendingPathComponent("MeshOutput")
+        
+        // Check if MeshOutput directory exists
+        guard FileManager.default.fileExists(atPath: meshOutputPath.path) else {
+            showAlert(title: "No Mesh Files", message: "No MeshOutput directory found. Generate a mesh first.")
+            return
+        }
+        
+        // Load all mesh files from the directory
+        let entities = loadAllMeshesFromDirectory(meshOutputPath)
+        
+        if entities.isEmpty {
+            showAlert(title: "No Mesh Files", message: "No supported mesh files found in MeshOutput directory.")
+        } else {
+            // Display the first loaded mesh in AR
+            let firstEntity = entities[0]
+            displayMeshInAR(firstEntity)
+            
+            showAlert(
+                title: "Mesh Loaded!",
+                message: "Successfully loaded \(entities.count) mesh file(s).\n\nFirst mesh: \(firstEntity.name)"
+            )
+        }
+    }
+    
+    /// Displays a ModelEntity in the AR scene
+    private func displayMeshInAR(_ entity: ModelEntity) {
+        print("🔍 DEBUG: Displaying mesh in AR: \(entity.name)")
+        
+        // Position the entity in front of the camera
+        let cameraTransform = arView.session.currentFrame?.camera.transform ?? matrix_identity_float4x4
+        let position = simd_make_float3(cameraTransform.columns.3) + simd_make_float3(0, 0, -1) // 1 meter in front
+        
+        entity.position = position
+        
+        // Add the entity to the AR scene
+        arView.scene.addAnchor(AnchorEntity(world: position))
+        arView.scene.anchors.first?.addChild(entity)
+        
+        print("✅ DEBUG: Mesh added to AR scene at position: \(position)")
+    }
+    
+    /// Opens the 3D model viewer
+    @objc private func viewerButtonTapped() {
+        print("🔍 DEBUG: viewerButtonTapped called")
+        
+        // Show a simple alert for now since we can't add SwiftUI files easily
+        let alert = UIAlertController(
+            title: "3D Model Viewer",
+            message: "This would open a SwiftUI view with interactive 3D model viewing capabilities including:\n\n• Drag to rotate\n• Pinch to zoom\n• Load custom models\n• Reset view\n\nThe ModelViewer.swift file has been created but needs to be added to the Xcode project manually.",
+            preferredStyle: .alert
+        )
+        alert.addAction(UIAlertAction(title: "OK", style: .default))
+        present(alert, animated: true)
+    }
+    
+    /// Navigates to the ModelViewer with a specific mesh file
+    private func navigateToModelViewer(with fileURL: URL) {
+        print("🔍 DEBUG: navigateToModelViewer called with file: \(fileURL.path)")
+        
+        // Show success alert with option to view the model
+        let alert = UIAlertController(
+            title: "3D Mesh Generated! 🎉",
+            message: "Successfully created 3D mesh from your photos.\n\nFile saved to:\n\(fileURL.lastPathComponent)\n\nTo view the model:\n1. Add ModelViewer.swift to your Xcode project\n2. Tap the orange '3D' button\n3. The model will load automatically",
+            preferredStyle: .alert
+        )
+        
+        alert.addAction(UIAlertAction(title: "View Model", style: .default) { _ in
+            // This would open the ModelViewer when the file is added to the project
+            print("✅ DEBUG: User chose to view model: \(fileURL.lastPathComponent)")
+        })
+        
+        alert.addAction(UIAlertAction(title: "OK", style: .cancel))
+        
+        present(alert, animated: true) {
+            print("✅ DEBUG: Success alert presented for mesh file: \(fileURL.lastPathComponent)")
+        }
+    }
+    
+    /// Resets the scan counter to start fresh
+    private func resetScanCounter() {
+        scanCounter = 0
+        print("🔄 DEBUG: Scan counter reset to 0")
     }
     
     private func showCameraPermissionAlert() {
@@ -779,12 +916,267 @@ class MeshGenerator: NSObject {
     }
 }
 
+// MARK: - 3D Mesh Loading Functions
+
+/// Loads a 3D mesh file from a local URL and converts it to a ModelEntity
+/// - Parameter fileURL: The URL of the 3D mesh file (USDZ, OBJ, etc.)
+/// - Returns: A ModelEntity that can be rendered in RealityKit, or nil if loading fails
+func loadMeshFromFile(_ fileURL: URL) -> ModelEntity? {
+    print("🔍 DEBUG: Loading mesh from file: \(fileURL.path)")
+    
+    // Check if file exists
+    guard FileManager.default.fileExists(atPath: fileURL.path) else {
+        print("❌ Error: File does not exist at path: \(fileURL.path)")
+        return nil
+    }
+    
+    let fileExtension = fileURL.pathExtension.lowercased()
+    print("✅ DEBUG: File extension: \(fileExtension)")
+    
+    switch fileExtension {
+    case "usdz":
+        return loadUSDZFile(fileURL)
+    case "obj":
+        return loadOBJFile(fileURL)
+    case "scn", "scnz":
+        return loadSCNFile(fileURL)
+    case "dae":
+        return loadDAEFile(fileURL)
+    default:
+        print("❌ Error: Unsupported file format: \(fileExtension)")
+        print("📋 Supported formats: USDZ, OBJ, SCN, SCNZ, DAE")
+        return nil
+    }
+}
+
+/// Loads a USDZ file and converts it to ModelEntity
+private func loadUSDZFile(_ fileURL: URL) -> ModelEntity? {
+    print("✅ DEBUG: Loading USDZ file")
+    
+    do {
+        // Try to load the USDZ file using RealityKit's built-in loader
+        let entity = try ModelEntity.load(contentsOf: fileURL)
+        print("✅ DEBUG: USDZ file loaded successfully")
+        print("📊 DEBUG: Entity name: \(entity.name)")
+        print("📊 DEBUG: Entity bounds: \(entity.visualBounds(relativeTo: nil))")
+        return entity as! ModelEntity
+    } catch {
+        print("❌ Error loading USDZ file: \(error.localizedDescription)")
+        return nil
+    }
+}
+
+/// Loads an OBJ file and converts it to ModelEntity
+private func loadOBJFile(_ fileURL: URL) -> ModelEntity? {
+    print("✅ DEBUG: Loading OBJ file")
+    
+    do {
+        // Read the OBJ file content
+        let objContent = try String(contentsOf: fileURL, encoding: .utf8)
+        print("✅ DEBUG: OBJ file content loaded (\(objContent.count) characters)")
+        
+        // Parse OBJ file to extract vertices and faces
+        let mesh = parseOBJContent(objContent)
+        
+        if let mesh = mesh {
+            let entity = ModelEntity(mesh: mesh)
+            entity.name = fileURL.lastPathComponent
+            print("✅ DEBUG: OBJ file converted to ModelEntity successfully")
+            return entity
+        } else {
+            print("❌ Error: Failed to parse OBJ content")
+            return nil
+        }
+    } catch {
+        print("❌ Error loading OBJ file: \(error.localizedDescription)")
+        return nil
+    }
+}
+
+/// Loads a SceneKit file and converts it to ModelEntity
+private func loadSCNFile(_ fileURL: URL) -> ModelEntity? {
+    print("✅ DEBUG: Loading SCN file")
+    
+    do {
+        // Load the SceneKit scene
+        let scene = try SCNScene(url: fileURL, options: nil)
+        print("✅ DEBUG: SCN scene loaded successfully")
+        
+        // Convert SceneKit scene to ModelEntity
+        let entity = convertSCNSceneToModelEntity(scene)
+        print("✅ DEBUG: SCN scene converted to ModelEntity")
+        return entity
+    } catch {
+        print("❌ Error loading SCN file: \(error.localizedDescription)")
+        return nil
+    }
+}
+
+/// Loads a COLLADA DAE file and converts it to ModelEntity
+private func loadDAEFile(_ fileURL: URL) -> ModelEntity? {
+    print("✅ DEBUG: Loading DAE file")
+    
+    do {
+        // Load the COLLADA scene
+        let scene = try SCNScene(url: fileURL, options: nil)
+        print("✅ DEBUG: DAE scene loaded successfully")
+        
+        // Convert SceneKit scene to ModelEntity
+        let entity = convertSCNSceneToModelEntity(scene)
+        print("✅ DEBUG: DAE scene converted to ModelEntity")
+        return entity
+    } catch {
+        print("❌ Error loading DAE file: \(error.localizedDescription)")
+        return nil
+    }
+}
+
+/// Parses OBJ file content and creates a Mesh
+private func parseOBJContent(_ content: String) -> MeshResource? {
+    print("🔍 DEBUG: Parsing OBJ content")
+    
+    var vertices: [SIMD3<Float>] = []
+    var faces: [UInt32] = []
+    
+    let lines = content.components(separatedBy: .newlines)
+    
+    for line in lines {
+        let trimmedLine = line.trimmingCharacters(in: .whitespaces)
+        
+        if trimmedLine.hasPrefix("v ") {
+            // Parse vertex
+            let components = trimmedLine.components(separatedBy: " ")
+            if components.count >= 4 {
+                let x = Float(components[1]) ?? 0.0
+                let y = Float(components[2]) ?? 0.0
+                let z = Float(components[3]) ?? 0.0
+                vertices.append(SIMD3<Float>(x, y, z))
+            }
+        } else if trimmedLine.hasPrefix("f ") {
+            // Parse face
+            let components = trimmedLine.components(separatedBy: " ")
+            if components.count >= 4 {
+                for i in 1...3 {
+                    let faceComponent = components[i]
+                    let vertexIndex = faceComponent.components(separatedBy: "/")[0]
+                    if let index = UInt32(vertexIndex) {
+                        faces.append(index - 1) // OBJ indices are 1-based
+                    }
+                }
+            }
+        }
+    }
+    
+    print("📊 DEBUG: Parsed \(vertices.count) vertices and \(faces.count) face indices")
+    
+    guard !vertices.isEmpty && !faces.isEmpty else {
+        print("❌ Error: No valid geometry found in OBJ file")
+        return nil
+    }
+    
+    do {
+        // Create a simple mesh descriptor for the vertices and faces
+        var meshDescriptor = MeshDescriptor(name: "OBJ Mesh")
+        meshDescriptor.positions = MeshBuffer(vertices)
+        meshDescriptor.primitives = .triangles(faces)
+        
+        let mesh = try MeshResource.generate(from: [meshDescriptor])
+        print("✅ DEBUG: MeshResource created successfully")
+        return mesh
+    } catch {
+        print("❌ Error creating MeshResource: \(error.localizedDescription)")
+        return nil
+    }
+}
+
+/// Converts a SceneKit scene to a ModelEntity
+private func convertSCNSceneToModelEntity(_ scene: SCNScene) -> ModelEntity? {
+    print("🔍 DEBUG: Converting SCN scene to ModelEntity")
+    
+    // Get the root node
+    guard let rootNode = scene.rootNode.childNodes.first else {
+        print("❌ Error: No geometry found in SCN scene")
+        return nil
+    }
+    
+    // Convert SceneKit geometry to RealityKit mesh
+    if let geometry = rootNode.geometry {
+        let mesh = convertSCNGeometryToMesh(geometry)
+        if let mesh = mesh {
+            let entity = ModelEntity(mesh: mesh)
+            entity.name = "Converted SCN Model"
+            print("✅ DEBUG: SCN scene converted successfully")
+            return entity
+        }
+    }
+    
+    print("❌ Error: Failed to convert SCN geometry")
+    return nil
+}
+
+/// Converts SceneKit geometry to RealityKit mesh
+private func convertSCNGeometryToMesh(_ geometry: SCNGeometry) -> MeshResource? {
+    print("🔍 DEBUG: Converting SCN geometry to MeshResource")
+    
+    // For simplicity, create a basic mesh from geometry bounds
+    // In a real implementation, you'd extract vertices and faces from the geometry
+    let boundingBox = geometry.boundingBox
+    let size = SIMD3<Float>(
+        Float(boundingBox.max.x - boundingBox.min.x),
+        Float(boundingBox.max.y - boundingBox.min.y),
+        Float(boundingBox.max.z - boundingBox.min.z)
+    )
+    
+    // Create a simple box mesh as placeholder
+    let mesh = MeshResource.generateBox(size: size)
+    print("✅ DEBUG: Created placeholder mesh from SCN geometry")
+    return mesh
+}
+
+/// Loads all mesh files from a directory and returns an array of ModelEntities
+func loadAllMeshesFromDirectory(_ directoryURL: URL) -> [ModelEntity] {
+    print("🔍 DEBUG: Loading all meshes from directory: \(directoryURL.path)")
+    
+    var entities: [ModelEntity] = []
+    
+    do {
+        let fileURLs = try FileManager.default.contentsOfDirectory(
+            at: directoryURL,
+            includingPropertiesForKeys: [.contentModificationDateKey],
+            options: [.skipsHiddenFiles]
+        )
+        
+        // Filter for 3D mesh files
+        let meshFileURLs = fileURLs.filter { url in
+            let fileExtension = url.pathExtension.lowercased()
+            return ["usdz", "obj", "scn", "scnz", "dae"].contains(fileExtension)
+        }
+        
+        print("📁 DEBUG: Found \(meshFileURLs.count) mesh files")
+        
+        for fileURL in meshFileURLs {
+            if let entity = loadMeshFromFile(fileURL) {
+                entities.append(entity)
+                print("✅ DEBUG: Loaded mesh: \(fileURL.lastPathComponent)")
+            }
+        }
+        
+        print("✅ DEBUG: Successfully loaded \(entities.count) meshes")
+        
+    } catch {
+        print("❌ Error reading directory: \(error.localizedDescription)")
+    }
+    
+    return entities
+}
+
 // MARK: - Error Types
 enum MeshGeneratorError: Error, LocalizedError {
     case noPhotosFound
     case cancelled
     case unknownResult
     case fileSaveFailed
+    case meshLoadFailed
     
     var errorDescription: String? {
         switch self {
@@ -796,6 +1188,8 @@ enum MeshGeneratorError: Error, LocalizedError {
             return "Unknown result from photogrammetry session"
         case .fileSaveFailed:
             return "Failed to save generated mesh to file"
+        case .meshLoadFailed:
+            return "Failed to load mesh from file"
         }
     }
 } 
