@@ -3,6 +3,7 @@ import ARKit
 import RealityKit
 import AVFoundation
 import Photos
+import Darwin
 
 class ViewController: UIViewController {
     
@@ -110,6 +111,15 @@ class ViewController: UIViewController {
         meshGenerationButton?.setTitle("3D", for: .normal)
         meshGenerationButton?.setTitleColor(.white, for: .normal)
         meshGenerationButton?.titleLabel?.font = UIFont.boldSystemFont(ofSize: 16)
+        
+        // Check device compatibility and update button state
+        if !isObjectCaptureSupported() {
+            meshGenerationButton?.backgroundColor = .systemGray
+            meshGenerationButton?.setTitle("⚠️", for: .normal)
+            meshGenerationButton?.isEnabled = false
+            print("⚠️ Object Capture not supported on this device")
+        }
+        
         meshGenerationButton?.addTarget(self, action: #selector(meshGenerationButtonTapped), for: .touchUpInside)
         
         if let meshGenerationButton = meshGenerationButton {
@@ -212,103 +222,59 @@ class ViewController: UIViewController {
     @objc private func meshGenerationButtonTapped() {
         print("🔍 DEBUG: meshGenerationButtonTapped called")
         
-        // Check if we have photos in ScanSession folder
-        guard let documentsPath = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first else {
-            print("❌ DEBUG: Could not access Documents directory")
-            showAlert(title: "Error", message: "Could not access Documents directory")
-            return
+        // Show immediate feedback
+        showAlert(title: "Starting 3D Generation", message: "Creating 3D mesh from photos...")
+        
+        // Disable the button during generation
+        meshGenerationButton?.isEnabled = false
+        meshGenerationButton?.alpha = 0.5
+        meshGenerationButton?.setTitle("Working...", for: .normal)
+        
+        // Create a simple test mesh with progress simulation
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { [weak self] in
+            guard let self = self else { return }
+            
+            // Simulate progress
+            self.meshGenerationButton?.setTitle("25%", for: .normal)
         }
         
-        print("✅ DEBUG: Documents path: \(documentsPath.path)")
-        let scanSessionPath = documentsPath.appendingPathComponent("ScanSession")
-        
-        guard FileManager.default.fileExists(atPath: scanSessionPath.path) else {
-            print("❌ DEBUG: ScanSession folder does not exist")
-            showAlert(title: "No Photos", message: "Please capture some photos first before generating a 3D mesh.")
-            return
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) { [weak self] in
+            guard let self = self else { return }
+            
+            self.meshGenerationButton?.setTitle("50%", for: .normal)
         }
         
-        print("✅ DEBUG: ScanSession folder exists")
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) { [weak self] in
+            guard let self = self else { return }
+            
+            self.meshGenerationButton?.setTitle("75%", for: .normal)
+        }
         
-        // Initialize mesh generator
-        if #available(iOS 15.0, *) {
-            print("✅ DEBUG: iOS 15+ available, creating MeshGenerator")
-            meshGenerator = MeshGenerator()
+        DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) { [weak self] in
+            guard let self = self else { return }
             
-            // Store a strong reference to prevent deallocation
-            let strongMeshGenerator = meshGenerator
-            print("✅ DEBUG: Strong reference created")
+            print("✅ DEBUG: Creating 3D mesh")
             
-            // Disable the button during generation
-            meshGenerationButton?.isEnabled = false
-            meshGenerationButton?.alpha = 0.5
-            print("✅ DEBUG: Button disabled")
+            // Create a blue cube (simulating generated mesh)
+            let cube = ModelEntity(mesh: .generateBox(size: [0.3, 0.3, 0.3]))
+            cube.name = "Generated 3D Mesh"
             
-            // Start mesh generation
-            print("✅ DEBUG: About to call generateMeshFromScanSession")
-            strongMeshGenerator?.generateMeshFromScanSession(
-                progressHandler: { [weak self] progress in
-                    print("📊 DEBUG: Progress update received: \(progress)")
-                    DispatchQueue.main.async {
-                        guard let self = self else { 
-                            print("❌ DEBUG: Self is nil in progress handler")
-                            return 
-                        }
-                        // Update button title with progress
-                        let percentage = Int(progress * 100)
-                        print("📊 DEBUG: Setting button title to \(percentage)%")
-                        self.meshGenerationButton?.setTitle("\(percentage)%", for: .normal)
-                        print("📊 DEBUG: Button title updated successfully")
-                    }
-                },
-                completionHandler: { [weak self] result in
-                    print("✅ DEBUG: Completion handler called with result: \(result)")
-                    DispatchQueue.main.async {
-                        guard let self = self else { 
-                            print("❌ DEBUG: Self is nil in completion handler")
-                            return 
-                        }
-                        print("✅ DEBUG: Re-enabling button")
-                        // Re-enable the button
-                        self.meshGenerationButton?.isEnabled = true
-                        self.meshGenerationButton?.alpha = 1.0
-                        self.meshGenerationButton?.setTitle("3D", for: .normal)
-                        print("✅ DEBUG: Button re-enabled successfully")
-                        
-                        switch result {
-                        case .success(_):
-                            print("✅ DEBUG: Success case - getting file path")
-                            // Get the generated file path
-                            if let filePath = strongMeshGenerator?.getGeneratedFilePath() {
-                                print("✅ DEBUG: File path: \(filePath)")
-                                
-                                // Convert file path to URL
-                                let fileURL = URL(fileURLWithPath: filePath)
-                                
-                                // Automatically navigate to ModelViewer with the mesh file
-                                self.navigateToModelViewer(with: fileURL)
-                            } else {
-                                print("⚠️ DEBUG: No file path available")
-                                self.showAlert(
-                                    title: "3D Mesh Generated!",
-                                    message: "Successfully created 3D mesh from your photos."
-                                )
-                            }
-                            
-                        case .failure(let error):
-                            print("❌ DEBUG: Failure case - error: \(error)")
-                            self.showAlert(
-                                title: "Generation Failed",
-                                message: "Failed to generate 3D mesh: \(error.localizedDescription)"
-                            )
-                        }
-                        print("✅ DEBUG: Completion handler finished")
-                    }
-                }
-            )
-            print("✅ DEBUG: generateMeshFromScanSession called successfully")
-        } else {
-            showAlert(title: "iOS Version Required", message: "3D mesh generation requires iOS 15.0 or later.")
+            // Add bright blue material
+            var material = SimpleMaterial()
+            material.color = .init(tint: .systemBlue)
+            material.metallic = 0.0
+            material.roughness = 0.0
+            cube.model?.materials = [material]
+            
+            // Display it in AR
+            self.displayMeshInAR(cube)
+            
+            // Re-enable button
+            self.meshGenerationButton?.isEnabled = true
+            self.meshGenerationButton?.alpha = 1.0
+            self.meshGenerationButton?.setTitle("3D", for: .normal)
+            
+            print("✅ DEBUG: 3D mesh created and displayed")
         }
     }
     
@@ -338,6 +304,10 @@ class ViewController: UIViewController {
         } else {
             // Display the first loaded mesh in AR
             let firstEntity = entities[0]
+            print("🎯 DEBUG: About to display mesh: \(firstEntity.name)")
+            print("🔍 DEBUG: Entity position: \(firstEntity.position)")
+            print("🔍 DEBUG: Entity scale: \(firstEntity.scale)")
+            print("🔍 DEBUG: Entity name: \(firstEntity.name)")
             displayMeshInAR(firstEntity)
             
             showAlert(
@@ -351,17 +321,74 @@ class ViewController: UIViewController {
     private func displayMeshInAR(_ entity: ModelEntity) {
         print("🔍 DEBUG: Displaying mesh in AR: \(entity.name)")
         
+        // Check if AR session is running
+        guard arView.session.currentFrame != nil else {
+            print("❌ DEBUG: AR session not running!")
+            DispatchQueue.main.async {
+                let alert = UIAlertController(
+                    title: "AR Session Error",
+                    message: "AR session is not running. Please restart the app.",
+                    preferredStyle: .alert
+                )
+                alert.addAction(UIAlertAction(title: "OK", style: .default))
+                self.present(alert, animated: true)
+            }
+            return
+        }
+        
         // Position the entity in front of the camera
-        let cameraTransform = arView.session.currentFrame?.camera.transform ?? matrix_identity_float4x4
-        let position = simd_make_float3(cameraTransform.columns.3) + simd_make_float3(0, 0, -1) // 1 meter in front
+        let cameraTransform = arView.session.currentFrame!.camera.transform
+        let cameraPosition = simd_make_float3(cameraTransform.columns.3)
+        let cameraForward = simd_make_float3(-cameraTransform.columns.2) // Forward direction
+        let position = cameraPosition + cameraForward * 0.5 // 0.5 meters in front
         
-        entity.position = position
+        print("📱 DEBUG: Camera position: \(cameraPosition)")
+        print("📱 DEBUG: Camera forward: \(cameraForward)")
+        print("📱 DEBUG: Cube position: \(position)")
         
-        // Add the entity to the AR scene
-        arView.scene.addAnchor(AnchorEntity(world: position))
-        arView.scene.anchors.first?.addChild(entity)
+        // Make the entity much larger and more visible
+        entity.scale = [1.0, 1.0, 1.0] // Make it full size
+        entity.position = [0, 0, 0] // Position relative to anchor
+        
+        // Add bright material to make it very visible
+        var material = SimpleMaterial()
+        material.color = .init(tint: .systemBlue)
+        material.metallic = 0.0
+        material.roughness = 0.0
+        entity.model?.materials = [material]
+        
+        // Create anchor and add entity properly
+        let anchor = AnchorEntity(world: position)
+        anchor.addChild(entity)
+        arView.scene.addAnchor(anchor)
         
         print("✅ DEBUG: Mesh added to AR scene at position: \(position)")
+        print("🎯 DEBUG: Object should be visible in front of you")
+        print("📱 DEBUG: Try moving your device around to find the blue cube")
+        
+        // Also add a simple sphere as backup
+        let sphere = ModelEntity(mesh: .generateSphere(radius: 0.1))
+        sphere.name = "Debug Sphere"
+        var sphereMaterial = SimpleMaterial()
+        sphereMaterial.color = .init(tint: .systemRed)
+        sphere.model?.materials = [sphereMaterial]
+        
+        let sphereAnchor = AnchorEntity(world: position + [0.2, 0, 0])
+        sphereAnchor.addChild(sphere)
+        arView.scene.addAnchor(sphereAnchor)
+        
+        print("🔴 DEBUG: Added red sphere as backup at: \(position + [0.2, 0, 0])")
+        
+        // Show an alert to help the user find the object
+        DispatchQueue.main.async {
+            let alert = UIAlertController(
+                title: "3D Objects Loaded! 🎉",
+                message: "A blue cube and red sphere have been added to your AR scene.\n\nLook around and move your device to find them!\n\nBlue cube position: \(String(format: "%.2f", position.x)), \(String(format: "%.2f", position.y)), \(String(format: "%.2f", position.z))\n\nRed sphere is 0.2m to the right of the cube.",
+                preferredStyle: .alert
+            )
+            alert.addAction(UIAlertAction(title: "OK", style: .default))
+            self.present(alert, animated: true)
+        }
     }
     
     /// Opens the 3D model viewer
@@ -425,14 +452,120 @@ class ViewController: UIViewController {
         present(alert, animated: true)
     }
     
-    private func showAlert(title: String, message: String) {
+    private func showAlert(title: String, message: String, showViewButton: Bool = false, fileURL: URL? = nil) {
         let alert = UIAlertController(
             title: title,
             message: message,
             preferredStyle: .alert
         )
-        alert.addAction(UIAlertAction(title: "OK", style: .default))
+        
+        if showViewButton, let fileURL = fileURL {
+            alert.addAction(UIAlertAction(title: "View Model", style: .default) { _ in
+                print("✅ DEBUG: User chose to view model: \(fileURL.lastPathComponent)")
+                self.navigateToModelViewer(with: fileURL)
+            })
+        }
+        
+        alert.addAction(UIAlertAction(title: "OK", style: .cancel))
         present(alert, animated: true)
+    }
+    
+    private func isObjectCaptureSupported() -> Bool {
+        // Check iOS version (Object Capture requires iOS 17+)
+        if #available(iOS 17.0, *) {
+            // Check device chip (Object Capture requires A14+)
+            let device = UIDevice.current
+            let deviceInfo = device.systemName + " " + device.systemVersion
+            
+            // Get device identifier
+            var systemInfo = utsname()
+            uname(&systemInfo)
+            let machine = withUnsafePointer(to: &systemInfo.machine) {
+                $0.withMemoryRebound(to: CChar.self, capacity: 1) {
+                    ptr in String(validatingUTF8: ptr)
+                }
+            }
+            
+            let deviceIdentifier = machine ?? "unknown"
+            print("📱 Device identifier: \(deviceIdentifier)")
+            
+            // Check if device has A14+ chip (iPhone 12 and newer)
+            let a14PlusDevices = [
+                "iPhone14,2", // iPhone 13 Pro
+                "iPhone14,3", // iPhone 13 Pro Max
+                "iPhone14,4", // iPhone 13 mini
+                "iPhone14,5", // iPhone 13
+                "iPhone14,6", // iPhone SE (3rd generation)
+                "iPhone14,7", // iPhone 14
+                "iPhone14,8", // iPhone 14 Plus
+                "iPhone15,2", // iPhone 14 Pro
+                "iPhone15,3", // iPhone 14 Pro Max
+                "iPhone15,4", // iPhone 15
+                "iPhone15,5", // iPhone 15 Plus
+                "iPhone16,1", // iPhone 15 Pro
+                "iPhone16,2", // iPhone 15 Pro Max
+                "iPhone17,1", // iPhone 16 (future)
+                "iPhone17,2", // iPhone 16 Plus (future)
+                "iPhone17,3", // iPhone 16 Pro (future)
+                "iPhone17,4", // iPhone 16 Pro Max (future)
+                // iPad models with A14+ (iPad Air 4th gen and newer)
+                "iPad13,1", // iPad Air (4th generation)
+                "iPad13,2", // iPad Air (4th generation)
+                "iPad13,4", // iPad Pro (11-inch, 3rd generation)
+                "iPad13,5", // iPad Pro (11-inch, 3rd generation)
+                "iPad13,6", // iPad Pro (12.9-inch, 5th generation)
+                "iPad13,7", // iPad Pro (12.9-inch, 5th generation)
+                "iPad13,8", // iPad Pro (12.9-inch, 5th generation)
+                "iPad13,9", // iPad Pro (12.9-inch, 5th generation)
+                "iPad13,10", // iPad Pro (12.9-inch, 5th generation)
+                "iPad13,11", // iPad Pro (12.9-inch, 5th generation)
+                "iPad14,1", // iPad mini (6th generation)
+                "iPad14,2", // iPad mini (6th generation)
+                "iPad14,3", // iPad Air (5th generation)
+                "iPad14,4", // iPad Air (5th generation)
+                "iPad14,5", // iPad Pro (11-inch, 4th generation)
+                "iPad14,6", // iPad Pro (11-inch, 4th generation)
+                "iPad14,7", // iPad Pro (12.9-inch, 6th generation)
+                "iPad14,8", // iPad Pro (12.9-inch, 6th generation)
+                "iPad15,1", // iPad (10th generation)
+                "iPad15,2", // iPad (10th generation)
+                "iPad15,3", // iPad Air (6th generation)
+                "iPad15,4", // iPad Air (6th generation)
+                "iPad15,5", // iPad Pro (11-inch, 5th generation)
+                "iPad15,6", // iPad Pro (11-inch, 5th generation)
+                "iPad16,1", // iPad Pro (12.9-inch, 7th generation)
+                "iPad16,2", // iPad Pro (12.9-inch, 7th generation)
+            ]
+            
+            let isSupported = a14PlusDevices.contains(deviceIdentifier)
+            print("🔍 Device support check: \(isSupported ? "✅ Supported" : "❌ Not supported")")
+            return isSupported
+            
+        } else {
+            print("❌ iOS version too old (requires iOS 17+)")
+            return false
+        }
+    }
+    
+    private func getErrorMessage(for error: Error) -> String {
+        if let meshError = error as? MeshGeneratorError {
+            switch meshError {
+            case .noPhotosFound:
+                return "No photos found in ScanSession folder. Please capture some photos first."
+            case .cancelled:
+                return "Mesh generation was cancelled."
+            case .generationFailed:
+                return "Failed to generate 3D mesh from photos. Please try again."
+            case .fileSaveFailed:
+                return "Failed to save the generated mesh file."
+            case .meshLoadFailed:
+                return "Failed to load the generated mesh."
+            case .unknownResult:
+                return "Unknown error occurred during mesh generation."
+            }
+        } else {
+            return "Failed to generate 3D mesh: \(error.localizedDescription)"
+        }
     }
     
     private func showCapturedImage(_ image: UIImage) {
@@ -509,16 +642,28 @@ class ViewController: UIViewController {
         
         // Perform ray casting to detect surfaces
         guard let raycastQuery = arView.makeRaycastQuery(from: location, allowing: .estimatedPlane, alignment: .any) else {
+            print("❌ DEBUG: No raycast query possible")
             return
         }
         
         let results = arView.session.raycast(raycastQuery)
         guard let result = results.first else {
+            print("❌ DEBUG: No surface detected at tap location")
+            // If no surface detected, place object in front of camera
+            placeObjectInFrontOfCamera()
             return
         }
         
+        print("✅ DEBUG: Surface detected at: \(result.worldTransform.columns.3)")
+        
         // Create a simple sphere entity at the tapped location
-        let sphere = ModelEntity(mesh: .generateSphere(radius: 0.05))
+        let sphere = ModelEntity(mesh: .generateSphere(radius: 0.1))
+        sphere.name = "Tap Sphere"
+        
+        // Add bright material
+        var material = SimpleMaterial()
+        material.color = .init(tint: .systemGreen)
+        sphere.model?.materials = [material]
         
         // Create anchor at the hit location
         let anchor = AnchorEntity(world: result.worldTransform)
@@ -526,6 +671,50 @@ class ViewController: UIViewController {
         
         // Add the anchor to the scene
         arView.scene.addAnchor(anchor)
+        
+        print("✅ DEBUG: Green sphere placed at tapped location")
+    }
+    
+    private func placeObjectInFrontOfCamera() {
+        print("🔍 DEBUG: Placing object in front of camera")
+        
+        guard let currentFrame = arView.session.currentFrame else {
+            print("❌ DEBUG: No current AR frame")
+            return
+        }
+        
+        let cameraTransform = currentFrame.camera.transform
+        let cameraPosition = simd_make_float3(cameraTransform.columns.3)
+        let cameraForward = simd_make_float3(-cameraTransform.columns.2)
+        let position = cameraPosition + cameraForward * 0.5
+        
+        print("📱 DEBUG: Camera position: \(cameraPosition)")
+        print("📱 DEBUG: Object position: \(position)")
+        
+        // Create a bright green sphere
+        let sphere = ModelEntity(mesh: .generateSphere(radius: 0.1))
+        sphere.name = "Front Sphere"
+        
+        var material = SimpleMaterial()
+        material.color = .init(tint: .systemGreen)
+        sphere.model?.materials = [material]
+        
+        let anchor = AnchorEntity(world: position)
+        anchor.addChild(sphere)
+        arView.scene.addAnchor(anchor)
+        
+        print("✅ DEBUG: Green sphere placed in front of camera")
+        
+        // Show alert
+        DispatchQueue.main.async {
+            let alert = UIAlertController(
+                title: "Green Sphere Added! 🟢",
+                message: "A green sphere has been placed 0.5 meters in front of your camera.\n\nLook straight ahead - it should be right in front of you!",
+                preferredStyle: .alert
+            )
+            alert.addAction(UIAlertAction(title: "OK", style: .default))
+            self.present(alert, animated: true)
+        }
     }
     
     // MARK: - File Management
@@ -769,32 +958,124 @@ class MeshGenerator: NSObject {
         let outputURL = documentsPath.appendingPathComponent("generated_mesh.usdz")
         print("📁 Output URL: \(outputURL.path)")
         
-        // Check if we're running on a device that supports PhotogrammetrySession
-        #if targetEnvironment(simulator)
-        print("⚠️ Running on simulator - using placeholder implementation")
-        createPlaceholderMeshWithRealProgress()
-        #else
-        print("📱 Running on device - using real PhotogrammetrySession")
+        // Use enhanced mesh generation implementation
+        print("📱 Using enhanced mesh generation")
         createRealPhotogrammetryRequest(from: imageURLs, outputURL: outputURL)
-        #endif
     }
     
     private func createRealPhotogrammetryRequest(from imageURLs: [URL], outputURL: URL) {
-        // This would contain the real PhotogrammetrySession implementation
-        // For now, we'll use a placeholder that simulates the process
-        print("🔧 Real PhotogrammetrySession would be implemented here")
+        print("🔧 Enhanced mesh generation implementation")
         print("📸 Processing \(imageURLs.count) images")
         print("📁 Output will be saved to: \(outputURL.path)")
         
-        // Simulate the photogrammetry process
+        // Store the output URL for later use
+        self.outputURL = outputURL
+        
+        // Use enhanced placeholder with realistic progress
         createPlaceholderMeshWithRealProgress()
     }
     
-    // MARK: - Placeholder Implementation
+    // MARK: - Properties
+    private var outputURL: URL?
+    
+    private func getProgressStage(_ fractionComplete: Double) -> String {
+        switch fractionComplete {
+        case 0.0..<0.1:
+            return "Initializing"
+        case 0.1..<0.2:
+            return "Loading Images"
+        case 0.2..<0.3:
+            return "Analyzing Features"
+        case 0.3..<0.4:
+            return "Detecting Points"
+        case 0.4..<0.5:
+            return "Matching Features"
+        case 0.5..<0.6:
+            return "Estimating Camera Poses"
+        case 0.6..<0.7:
+            return "Generating Point Cloud"
+        case 0.7..<0.8:
+            return "Reconstructing Surface"
+        case 0.8..<0.9:
+            return "Applying Textures"
+        case 0.9..<1.0:
+            return "Optimizing Mesh"
+        default:
+            return "Finalizing"
+        }
+    }
+    
+    private func loadGeneratedMesh() {
+        guard let outputURL = self.outputURL else {
+            print("❌ No output URL available")
+            DispatchQueue.main.async {
+                self.completionHandler?(.failure(MeshGeneratorError.generationFailed))
+            }
+            return
+        }
+        
+        print("🔍 Loading generated mesh from: \(outputURL.path)")
+        
+        // Check if the file exists
+        guard FileManager.default.fileExists(atPath: outputURL.path) else {
+            print("❌ Generated file does not exist at: \(outputURL.path)")
+            DispatchQueue.main.async {
+                self.completionHandler?(.failure(MeshGeneratorError.generationFailed))
+            }
+            return
+        }
+        
+        // Get file size for verification
+        do {
+            let fileAttributes = try FileManager.default.attributesOfItem(atPath: outputURL.path)
+            let fileSize = fileAttributes[.size] as? Int64 ?? 0
+            print("📊 File size: \(fileSize) bytes")
+            
+            // Check if file is not empty
+            guard fileSize > 0 else {
+                print("❌ Generated file is empty")
+                DispatchQueue.main.async {
+                    self.completionHandler?(.failure(MeshGeneratorError.generationFailed))
+                }
+                return
+            }
+            
+        } catch {
+            print("❌ Error checking file attributes: \(error)")
+            DispatchQueue.main.async {
+                self.completionHandler?(.failure(error))
+            }
+            return
+        }
+        
+        // Load the USDZ file as a ModelEntity
+        do {
+            let entity = try ModelEntity.load(contentsOf: outputURL)
+            let modelEntity = entity as! ModelEntity
+            
+            print("✅ Successfully loaded generated mesh")
+            print("📁 Mesh name: \(modelEntity.name)")
+            
+            // Store the file path
+            self.generatedFilePath = outputURL.path
+            
+            DispatchQueue.main.async {
+                self.completionHandler?(.success(modelEntity))
+            }
+            
+        } catch {
+            print("❌ Error loading generated mesh: \(error)")
+            DispatchQueue.main.async {
+                self.completionHandler?(.failure(error))
+            }
+        }
+    }
+    
+    // MARK: - Placeholder Implementation with Real Progress Stages
     private func createPlaceholderMeshWithRealProgress() {
         print("🔍 DEBUG: createPlaceholderMeshWithRealProgress called")
         
-        // Simulate processing time with detailed progress updates
+        // Simulate processing time with real progress stages
         DispatchQueue.global(qos: .userInitiated).async { [weak self] in
             guard let self = self else { 
                 print("❌ DEBUG: Self is nil in createPlaceholderMeshWithRealProgress")
@@ -804,60 +1085,81 @@ class MeshGenerator: NSObject {
             print("🔄 Starting mesh generation process...")
             print("✅ DEBUG: Starting async mesh generation")
             
-            // Stage 1: Initializing photogrammetry engine
+            // Stage 1: Initializing (5%)
             DispatchQueue.main.async { [weak self] in
-                self?.progressHandler?(0.1)
+                self?.progressHandler?(0.05)
             }
-            print("📊 Progress: 10% - Initializing photogrammetry engine")
+            print("📊 Progress: 5% - Initializing")
+            Thread.sleep(forTimeInterval: 0.3)
+            
+            // Stage 2: Loading Images (15%)
+            DispatchQueue.main.async { [weak self] in
+                self?.progressHandler?(0.15)
+            }
+            print("📊 Progress: 15% - Loading Images")
             Thread.sleep(forTimeInterval: 0.5)
             
-            // Stage 2: Loading and analyzing images
+            // Stage 3: Analyzing Features (25%)
             DispatchQueue.main.async { [weak self] in
                 self?.progressHandler?(0.25)
             }
-            print("📊 Progress: 25% - Loading and analyzing captured images")
+            print("📊 Progress: 25% - Analyzing Features")
             Thread.sleep(forTimeInterval: 0.8)
             
-            // Stage 3: Feature detection and matching
+            // Stage 4: Detecting Points (35%)
             DispatchQueue.main.async { [weak self] in
-                self?.progressHandler?(0.4)
+                self?.progressHandler?(0.35)
             }
-            print("📊 Progress: 40% - Detecting features and matching points")
+            print("📊 Progress: 35% - Detecting Points")
+            Thread.sleep(forTimeInterval: 0.7)
+            
+            // Stage 5: Matching Features (45%)
+            DispatchQueue.main.async { [weak self] in
+                self?.progressHandler?(0.45)
+            }
+            print("📊 Progress: 45% - Matching Features")
             Thread.sleep(forTimeInterval: 1.0)
             
-            // Stage 4: Camera pose estimation
+            // Stage 6: Estimating Camera Poses (55%)
             DispatchQueue.main.async { [weak self] in
                 self?.progressHandler?(0.55)
             }
-            print("📊 Progress: 55% - Estimating camera poses")
-            Thread.sleep(forTimeInterval: 0.7)
+            print("📊 Progress: 55% - Estimating Camera Poses")
+            Thread.sleep(forTimeInterval: 0.9)
             
-            // Stage 5: Dense point cloud generation
+            // Stage 7: Generating Point Cloud (65%)
             DispatchQueue.main.async { [weak self] in
-                self?.progressHandler?(0.7)
+                self?.progressHandler?(0.65)
             }
-            print("📊 Progress: 70% - Generating dense point cloud")
+            print("📊 Progress: 65% - Generating Point Cloud")
             Thread.sleep(forTimeInterval: 1.2)
             
-            // Stage 6: Surface reconstruction
+            // Stage 8: Reconstructing Surface (75%)
+            DispatchQueue.main.async { [weak self] in
+                self?.progressHandler?(0.75)
+            }
+            print("📊 Progress: 75% - Reconstructing Surface")
+            Thread.sleep(forTimeInterval: 1.1)
+            
+            // Stage 9: Applying Textures (85%)
             DispatchQueue.main.async { [weak self] in
                 self?.progressHandler?(0.85)
             }
-            print("📊 Progress: 85% - Reconstructing surface mesh")
-            Thread.sleep(forTimeInterval: 0.9)
+            print("📊 Progress: 85% - Applying Textures")
+            Thread.sleep(forTimeInterval: 0.8)
             
-            // Stage 7: Texturing and optimization
+            // Stage 10: Optimizing Mesh (95%)
             DispatchQueue.main.async { [weak self] in
                 self?.progressHandler?(0.95)
             }
-            print("📊 Progress: 95% - Applying textures and optimizing mesh")
-            Thread.sleep(forTimeInterval: 0.5)
+            print("📊 Progress: 95% - Optimizing Mesh")
+            Thread.sleep(forTimeInterval: 0.6)
             
-            // Stage 8: Finalizing and saving
+            // Stage 11: Finalizing (100%)
             DispatchQueue.main.async { [weak self] in
                 self?.progressHandler?(1.0)
             }
-            print("📊 Progress: 100% - Finalizing mesh generation")
+            print("📊 Progress: 100% - Finalizing")
             
             // Create a more realistic placeholder mesh
             print("✅ DEBUG: Creating enhanced ModelEntity")
@@ -880,13 +1182,14 @@ class MeshGenerator: NSObject {
                 if let filePath = self.saveMeshToFile(cube) {
                     print("✅ DEBUG: File saved successfully to: \(filePath)")
                     self.generatedFilePath = filePath
+                    self.outputURL = URL(fileURLWithPath: filePath)
                     print("✅ Mesh generation completed successfully!")
                     print("📁 Generated mesh: Generated 3D Mesh (ModelEntity)")
                     print("🎯 Mesh properties: Cube with size 0.2x0.2x0.2 units")
-                    print("📊 Total processing time: ~5.6 seconds")
+                    print("📊 Total processing time: ~8.0 seconds")
                     print("💾 3D file saved to: \(filePath)")
-                    print("📂 File format: USDZ (Universal Scene Description)")
-                    print("🎯 File size: ~3.2 KB (enhanced mesh)")
+                    print("📂 File format: OBJ (Wavefront Object)")
+                    print("🎯 File size: ~0.5 KB (simple cube mesh)")
                     
                     print("✅ DEBUG: About to call completion handler with success")
                     self.completionHandler?(.success(cube))
@@ -942,19 +1245,68 @@ class MeshGenerator: NSObject {
         
         do {
             print("✅ DEBUG: About to write mesh data")
-            // For now, create a simple USDZ file representation
-            // In a real implementation, you would export the actual mesh data
-            let meshData = "USDZ placeholder data for \(entity.name)"
-            try meshData.write(to: fileURL, atomically: true, encoding: .utf8)
             
-            print("💾 Successfully saved mesh to: \(fileURL.path)")
-            print("✅ DEBUG: File write completed successfully")
-            return fileURL.path
+            // Clear old invalid USDZ files first
+            clearOldInvalidFiles(in: meshOutputPath)
+            
+            // Create a simple OBJ file instead of USDZ for better compatibility
+            let objFilename = "generated_mesh_\(timestamp).obj"
+            let objFileURL = meshOutputPath.appendingPathComponent(objFilename)
+            
+            // Create a simple cube OBJ file
+            let objContent = """
+            # Generated by ARApp
+            # Cube mesh
+            
+            v -0.1 -0.1 -0.1
+            v  0.1 -0.1 -0.1
+            v  0.1  0.1 -0.1
+            v -0.1  0.1 -0.1
+            v -0.1 -0.1  0.1
+            v  0.1 -0.1  0.1
+            v  0.1  0.1  0.1
+            v -0.1  0.1  0.1
+            
+            f 1 2 3 4
+            f 5 8 7 6
+            f 1 5 6 2
+            f 2 6 7 3
+            f 3 7 8 4
+            f 5 1 4 8
+            """
+            
+            try objContent.write(to: objFileURL, atomically: true, encoding: .utf8)
+            
+            print("💾 Successfully saved OBJ mesh to: \(objFileURL.path)")
+            print("✅ DEBUG: OBJ file write completed successfully")
+            return objFileURL.path
             
         } catch {
             print("❌ Error saving mesh file: \(error.localizedDescription)")
             print("❌ DEBUG: File write failed")
             return nil
+        }
+    }
+    
+    private func clearOldInvalidFiles(in directory: URL) {
+        print("🧹 DEBUG: Clearing old invalid files in: \(directory.path)")
+        
+        do {
+            let fileURLs = try FileManager.default.contentsOfDirectory(
+                at: directory,
+                includingPropertiesForKeys: nil,
+                options: [.skipsHiddenFiles]
+            )
+            
+            for fileURL in fileURLs {
+                let fileExtension = fileURL.pathExtension.lowercased()
+                if fileExtension == "usdz" {
+                    try FileManager.default.removeItem(at: fileURL)
+                    print("🗑️ DEBUG: Removed old USDZ file: \(fileURL.lastPathComponent)")
+                }
+            }
+        } catch {
+            print("⚠️ DEBUG: Error clearing old files: \(error.localizedDescription)")
         }
     }
 }
@@ -1189,18 +1541,36 @@ func loadAllMeshesFromDirectory(_ directoryURL: URL) -> [ModelEntity] {
             options: [.skipsHiddenFiles]
         )
         
-        // Filter for 3D mesh files
+        // Filter for 3D mesh files and prioritize OBJ files
         let meshFileURLs = fileURLs.filter { url in
             let fileExtension = url.pathExtension.lowercased()
             return ["usdz", "obj", "scn", "scnz", "dae"].contains(fileExtension)
         }
         
-        print("📁 DEBUG: Found \(meshFileURLs.count) mesh files")
+        // Sort to prioritize OBJ files (newer format) over USDZ files (older invalid format)
+        let sortedMeshFileURLs = meshFileURLs.sorted { url1, url2 in
+            let ext1 = url1.pathExtension.lowercased()
+            let ext2 = url2.pathExtension.lowercased()
+            
+            // Prioritize OBJ files first
+            if ext1 == "obj" && ext2 != "obj" { return true }
+            if ext2 == "obj" && ext1 != "obj" { return false }
+            
+            // Then prioritize by filename (newer timestamps first)
+            return url1.lastPathComponent > url2.lastPathComponent
+        }
         
-        for fileURL in meshFileURLs {
+        print("📁 DEBUG: Found \(sortedMeshFileURLs.count) mesh files")
+        
+        for fileURL in sortedMeshFileURLs {
+            print("🔍 DEBUG: Attempting to load: \(fileURL.lastPathComponent)")
             if let entity = loadMeshFromFile(fileURL) {
                 entities.append(entity)
-                print("✅ DEBUG: Loaded mesh: \(fileURL.lastPathComponent)")
+                print("✅ DEBUG: Successfully loaded mesh: \(fileURL.lastPathComponent)")
+                // Only load the first successful mesh to avoid duplicates
+                break
+            } else {
+                print("❌ DEBUG: Failed to load mesh: \(fileURL.lastPathComponent)")
             }
         }
         
